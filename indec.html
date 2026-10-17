@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequential Casing Generator</title>
+    <style>
+        :root {
+            --google-blue: #1a73e8;
+            --google-blue-hover: #1557b0;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #202124;
+            --text-secondary: #5f6368;
+            --border-color: #dadce0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            /* 25% opacity grid background pattern */
+            background-image: 
+                linear-gradient(to right, rgba(218, 220, 224, 0.25) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(218, 220, 224, 0.25) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .header-stripe {
+            background-color: var(--google-blue);
+            height: 10px;
+            width: 100%;
+        }
+
+        .content {
+            padding: 28px 32px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fff;
+            color: var(--text-main);
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--google-blue);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+        }
+
+        button {
+            background-color: var(--google-blue);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--google-blue-hover);
+        }
+
+        .status {
+            font-size: 13px;
+            color: var(--google-blue);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-stripe"></div>
+        <div class="content">
+            <h1>Sequential Casing Generator</h1>
+            <p class="description">Type your target message below. Letters matching your target sequence in order will automatically capitalize in the box below, while other letters force to lowercase.</p>
+
+            <div class="form-group">
+                <label for="secretInput">1. Secret Message</label>
+                <input type="text" id="secretInput" placeholder="Enter target sequence...">
+            </div>
+
+            <div class="form-group">
+                <label for="targetTextarea">2. Type your message here</label>
+                <textarea id="targetTextarea" placeholder="Start typing here..."></textarea>
+            </div>
+
+            <div class="actions">
+                <div id="status" class="status"></div>
+                <button id="copyBtn">Copy Text</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const secretInput = document.getElementById('secretInput');
+        const targetTextarea = document.getElementById('targetTextarea');
+        const copyBtn = document.getElementById('copyBtn');
+        const statusDiv = document.getElementById('status');
+
+        // Function to process target textarea matching logic
+        function processTextarea() {
+            // Get clean secret sequence (only letters, ignoring spaces and symbols)
+            const rawSecret = secretInput.value;
+            let secretLetters = [];
+            for (let i = 0; i < rawSecret.length; i++) {
+                let char = rawSecret[i];
+                let lowerChar = char.toLowerCase();
+                if (lowerChar >= 'a' && lowerChar <= 'z') {
+                    secretLetters.push(char.toUpperCase());
+                }
+            }
+
+            let currentText = targetTextarea.value;
+            let secretIndex = 0;
+            let resultChars = [];
+
+            for (let i = 0; i < currentText.length; i++) {
+                let char = currentText[i];
+                let lowerChar = char.toLowerCase();
+                let isLetter = (lowerChar >= 'a' && lowerChar <= 'z');
+
+                if (!isLetter) {
+                    // Non-letters (spaces, punctuation, numbers) are left untouched
+                    resultChars.push(char);
+                } else {
+                    if (secretIndex < secretLetters.length) {
+                        let expectedChar = secretLetters[secretIndex];
+                        let expectedLower = expectedChar.toLowerCase();
+
+                        // If typed letter matches the required sequential letter
+                        if (lowerChar === expectedLower) {
+                            resultChars.push(expectedChar);
+                            secretIndex++;
+                        } else {
+                            // Convert non-matching letters to lowercase
+                            resultChars.push(lowerChar);
+                        }
+                    } else {
+                        // Beyond sequence length, enforce lowercase for all letters
+                        resultChars.push(lowerChar);
+                    }
+                }
+            }
+
+            const updatedText = resultChars.join('');
+            if (updatedText !== currentText) {
+                const cursorPosition = targetTextarea.selectionStart;
+                targetTextarea.value = updatedText;
+                try {
+                    targetTextarea.setSelectionRange(cursorPosition, cursorPosition);
+                } catch (err) {}
+            }
+        }
+
+        // Secret input handler: Enforce uppercase, remove non-letters/spaces, re-trigger algorithm
+        secretInput.addEventListener('input', function() {
+            let cursorPosition = secretInput.selectionStart;
+            let rawVal = secretInput.value;
+            
+            // Allow only letters A-Z, a-z, and spaces
+            let filteredVal = rawVal.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+
+            // Calculate how many characters were filtered out before the cursor
+            let charsBeforeCursor = rawVal.slice(0, cursorPosition);
+            let filteredCharsBeforeCursor = charsBeforeCursor.replace(/[^a-zA-Z\s]/g, '');
+            let newCursorPosition = filteredCharsBeforeCursor.length;
+
+            secretInput.value = filteredVal;
+            try {
+                secretInput.setSelectionRange(newCursorPosition, newCursorPosition);
+            } catch (err) {}
+
+            // Re-evaluate the live typing box whenever target sequence updates
+            processTextarea();
+        });
+
+        // Target textarea handler
+        targetTextarea.addEventListener('input', processTextarea);
+
+        // Copy button handler
+        copyBtn.addEventListener('click', function() {
+            if (!targetTextarea.value) return;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = targetTextarea.value;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                statusDiv.textContent = 'Copied to clipboard successfully!';
+                setTimeout(() => {
+                    statusDiv.textContent = '';
+                }, 3000);
+            } catch (err) {
+                statusDiv.textContent = 'Failed to copy text.';
+            }
+
+            document.body.removeChild(textArea);
+        });
+    </script>
+</body>
+</html>
